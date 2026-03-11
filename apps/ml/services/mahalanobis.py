@@ -1,37 +1,33 @@
 import numpy as np
 import pandas as pd
 from scipy.spatial.distance import mahalanobis
-from scipy.stats import chi2
+from sklearn.covariance import LedoitWolf
 from services.data_loader import INDICATOR_COLUMNS
 
 
 def detect_mahalanobis(
-    df: pd.DataFrame, significance: float = 0.05
+    df: pd.DataFrame, contamination: float = 0.25
 ) -> pd.DataFrame:
     """
     Mahalanobis distance детекция аномалий.
     Вычисляет расстояние каждого региона от центроида.
-    Аномалия, если расстояние превышает χ²-порог (df=число показателей, p<significance).
+    Использует Ledoit-Wolf shrinkage для устойчивой оценки ковариационной матрицы
+    (критично при n=8 < p=10).
+    Порог: top `contamination` доля регионов с наибольшим расстоянием.
     """
     X = df[INDICATOR_COLUMNS].values
-    n_features = X.shape[1]
-
     mean = np.mean(X, axis=0)
-    cov = np.cov(X, rowvar=False)
 
-    # Регуляризация ковариационной матрицы (малая выборка — 8 регионов)
-    cov_reg = cov + np.eye(n_features) * 1e-6
-    cov_inv = np.linalg.inv(cov_reg)
+    # Ledoit-Wolf shrinkage — устойчивая оценка ковариационной матрицы при n < p
+    lw = LedoitWolf().fit(X)
+    cov_inv = np.linalg.inv(lw.covariance_)
 
-    distances = []
-    for i in range(X.shape[0]):
-        d = mahalanobis(X[i], mean, cov_inv)
-        distances.append(d)
+    distances = np.array([
+        mahalanobis(X[i], mean, cov_inv) for i in range(X.shape[0])
+    ])
 
-    distances = np.array(distances)
-
-    # χ²-тест: порог при df = число показателей
-    threshold = np.sqrt(chi2.ppf(1 - significance, df=n_features))
+    # Порог: верхний квантиль (contamination % самых далёких = аномалии)
+    threshold = np.percentile(distances, 100 * (1 - contamination))
 
     results = pd.DataFrame(
         {

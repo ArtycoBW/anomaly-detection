@@ -11,6 +11,11 @@ def compute_ensemble(
     """
     Ensemble score: взвешенная сумма нормализованных scores трёх методов.
     weights: (z-score, isolation_forest, mahalanobis)
+
+    Аномалия определяется двумя критериями (OR):
+    1. 2+ метода считают аномалией (голосование)
+    2. ensemble_score > 0.65 (даже если только 1 метод сработал,
+       но score очень высокий — например, сильный выброс по одному методу)
     """
     scaler = MinMaxScaler()
 
@@ -37,18 +42,22 @@ def compute_ensemble(
         + w_m * scores_normalized["maha"]
     )
 
-    # Аномалия по ensemble: если 2+ метода считают аномалией
+    # Голосование: сколько методов считают аномалией
     anomaly_votes = (
         zscore_results["is_anomaly"].astype(int)
         + if_results["is_anomaly"].astype(int)
         + maha_results["is_anomaly"].astype(int)
     )
 
+    # Аномалия: 2+ голоса ИЛИ высокий ensemble score
+    is_anomaly = (anomaly_votes >= 2) | (ensemble_score > 0.65)
+
     results = pd.DataFrame(
         {
             "method": "ensemble",
             "score": ensemble_score,
-            "is_anomaly": anomaly_votes >= 2,
+            "is_anomaly": is_anomaly,
+            "anomaly_votes": anomaly_votes,
         },
         index=zscore_results.index,
     )
