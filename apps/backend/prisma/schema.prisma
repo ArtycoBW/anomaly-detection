@@ -1,0 +1,66 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Region {
+  id              String          @id // "rostov", "krasnodar", etc.
+  name            String
+  federalDistrict String          @map("federal_district")
+  geoJson         Json?           @map("geo_json")
+  indicators      Indicator[]
+  anomalies       AnomalyResult[]
+
+  @@map("regions")
+}
+
+model Indicator {
+  id                    Int     @id @default(autoincrement())
+  regionId              String  @map("region_id")
+  year                  Int
+  gdpPerCapita          Float?  @map("gdp_per_capita")
+  avgSalary             Float?  @map("avg_salary")
+  investmentPerCapita   Float?  @map("investment_per_capita")
+  rdSpendingPctGdp      Float?  @map("rd_spending_pct_gdp")
+  unemploymentRate      Float?  @map("unemployment_rate")
+  povertyRate           Float?  @map("poverty_rate")
+  higherEducationShare  Float?  @map("higher_education_share")
+  migrationGrowth       Float?  @map("migration_growth")
+  emissionsPerGdp       Float?  @map("emissions_per_gdp")
+  roadsPerArea          Float?  @map("roads_per_area")
+
+  region Region @relation(fields: [regionId], references: [id])
+
+  @@unique([regionId, year])
+  @@map("indicators")
+}
+
+model AnomalyResult {
+  id              Int      @id @default(autoincrement())
+  regionId        String   @map("region_id")
+  year            Int
+  method          String   // "zscore" | "isolation_forest" | "mahalanobis" | "ensemble"
+  score           Float
+  isAnomaly       Boolean  @map("is_anomaly")
+  zScores         Json?    @map("z_scores")
+  shapValues      Json?    @map("shap_values")
+  stabilityStatus String?  @map("stability_status") // "stable" | "temporary" | "normal"
+
+  region Region @relation(fields: [regionId], references: [id])
+
+  @@unique([regionId, year, method])
+  @@map("anomaly_results")
+}
+
+model Report {
+  id        Int      @id @default(autoincrement())
+  year      Int
+  content   String   @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("reports")
+}
