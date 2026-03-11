@@ -2,6 +2,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routers.pipeline import router as pipeline_router
 from routers.shap_router import router as shap_router
+from routers.report_router import router as report_router
+from routers.results_router import router as results_router
 
 app = FastAPI(
     title="iData ML Service",
@@ -19,6 +21,8 @@ app.add_middleware(
 
 app.include_router(pipeline_router)
 app.include_router(shap_router)
+app.include_router(report_router)
+app.include_router(results_router)
 
 
 @app.get("/health")
