@@ -1,18 +1,27 @@
 'use client';
 
+import { useState } from 'react';
 import { useYear } from '@/context/YearContext';
 import { useVenn } from '@/hooks/useVenn';
 import { useProximity } from '@/hooks/useProximity';
 import VennDiagram from '@/components/charts/VennDiagram';
 import ProximityGraph from '@/components/charts/ProximityGraph';
+import dynamic from 'next/dynamic';
 import { Card } from '@/components/ui/Card';
 import { ChartSkeleton } from '@/components/ui/Skeleton';
+import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
+
+const ProximityGraph3D = dynamic(
+  () => import('@/components/charts/ProximityGraph3D'),
+  { ssr: false, loading: () => <div className="h-[500px] skeleton rounded-xl" /> }
+);
 
 export default function ComparisonPage() {
   const { year } = useYear();
   const { data: vennData, isLoading: loadingVenn } = useVenn(year);
   const { data: proximityData, isLoading: loadingProximity } = useProximity(year);
+  const [view3D, setView3D] = useState(true);
 
   return (
     <div className="space-y-8">
@@ -45,8 +54,38 @@ export default function ComparisonPage() {
           <ChartSkeleton />
         ) : (
           <Card title="Граф близости" subtitle="Евклидово расстояние в пространстве z-scores">
+            {/* Toggle 2D/3D */}
+            <div className="flex items-center gap-1 mb-4 bg-slate-900/80 rounded-lg p-1 w-fit">
+              <button
+                onClick={() => setView3D(false)}
+                className={cn(
+                  'px-3 py-1.5 rounded-md text-xs font-medium transition-all',
+                  !view3D
+                    ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/20'
+                    : 'text-slate-500 hover:text-slate-300',
+                )}
+              >
+                2D
+              </button>
+              <button
+                onClick={() => setView3D(true)}
+                className={cn(
+                  'px-3 py-1.5 rounded-md text-xs font-medium transition-all',
+                  view3D
+                    ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/20'
+                    : 'text-slate-500 hover:text-slate-300',
+                )}
+              >
+                3D
+              </button>
+            </div>
+
             {proximityData ? (
-              <ProximityGraph data={proximityData} />
+              view3D ? (
+                <ProximityGraph3D data={proximityData} />
+              ) : (
+                <ProximityGraph data={proximityData} />
+              )
             ) : (
               <div className="text-slate-400 py-10 text-center">Нет данных</div>
             )}

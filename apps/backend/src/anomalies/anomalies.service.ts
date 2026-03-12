@@ -1,31 +1,31 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
-/** Названия числовых индикаторов в порядке столбцов матрицы */
+/** Ключи индикаторов в snake_case (как хранит ML сервис) */
 const INDICATOR_KEYS = [
-  'gdpPerCapita',
-  'avgSalary',
-  'investmentPerCapita',
-  'rdSpendingPctGdp',
-  'unemploymentRate',
-  'povertyRate',
-  'higherEducationShare',
-  'migrationGrowth',
-  'emissionsPerGdp',
-  'roadsPerArea',
+  'gdp_per_capita',
+  'avg_salary',
+  'investment_per_capita',
+  'rd_spending_pct_gdp',
+  'unemployment_rate',
+  'poverty_rate',
+  'higher_education_share',
+  'migration_growth',
+  'emissions_per_gdp',
+  'roads_per_area',
 ] as const;
 
 const INDICATOR_LABELS: Record<string, string> = {
-  gdpPerCapita: 'ВРП на душу',
-  avgSalary: 'Ср. зарплата',
-  investmentPerCapita: 'Инвестиции на душу',
-  rdSpendingPctGdp: 'Расходы на НИОКР (% ВРП)',
-  unemploymentRate: 'Безработица',
-  povertyRate: 'Уровень бедности',
-  higherEducationShare: 'Доля высш. образования',
-  migrationGrowth: 'Миграционный прирост',
-  emissionsPerGdp: 'Выбросы на ед. ВРП',
-  roadsPerArea: 'Дороги на ед. площади',
+  gdp_per_capita: 'ВРП на душу населения',
+  avg_salary: 'Средняя зарплата',
+  investment_per_capita: 'Инвестиции на душу',
+  rd_spending_pct_gdp: 'Расходы на НИОКР (% ВРП)',
+  unemployment_rate: 'Безработица',
+  poverty_rate: 'Уровень бедности',
+  higher_education_share: 'Доля высш. образования',
+  migration_growth: 'Миграционный прирост',
+  emissions_per_gdp: 'Выбросы на ед. ВРП',
+  roads_per_area: 'Плотность дорог',
 };
 
 type MethodName = 'zscore' | 'isolation_forest' | 'mahalanobis';

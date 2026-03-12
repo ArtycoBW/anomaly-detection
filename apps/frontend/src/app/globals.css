@@ -126,3 +126,107 @@ body::before {
 .row-glow:hover {
   background: linear-gradient(90deg, rgba(99, 102, 241, 0.05), rgba(99, 102, 241, 0.02), transparent);
 }
+
+/* Markdown prose styles (manual, since @tailwindcss/typography is TW3-only) */
+.report-prose {
+  color: #cbd5e1;
+  line-height: 1.8;
+  font-size: 15px;
+}
+.report-prose h1 {
+  font-size: 1.65em;
+  font-weight: 700;
+  background: linear-gradient(135deg, #818cf8, #a78bfa);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(71, 85, 105, 0.5);
+  margin-bottom: 1.5rem;
+  margin-top: 0;
+}
+.report-prose h2 {
+  font-size: 1.3em;
+  font-weight: 600;
+  color: #a5b4fc;
+  margin-top: 2.5rem;
+  margin-bottom: 1rem;
+  border-left: 4px solid rgba(99, 102, 241, 0.5);
+  padding-left: 1rem;
+}
+.report-prose h3 {
+  font-size: 1.1em;
+  font-weight: 600;
+  color: #e2e8f0;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+.report-prose p {
+  margin-bottom: 1em;
+}
+.report-prose strong {
+  color: #f1f5f9;
+  font-weight: 600;
+}
+.report-prose em {
+  color: #94a3b8;
+}
+.report-prose ul, .report-prose ol {
+  padding-left: 1.5em;
+  margin-bottom: 1em;
+}
+.report-prose li {
+  margin-bottom: 0.25em;
+}
+.report-prose li::marker {
+  color: #6366f1;
+}
+.report-prose blockquote {
+  border-left: 4px solid rgba(99, 102, 241, 0.4);
+  background: rgba(99, 102, 241, 0.05);
+  border-radius: 0 0.5rem 0.5rem 0;
+  padding: 0.5rem 1rem;
+  margin: 1em 0;
+  color: #cbd5e1;
+  font-style: normal;
+}
+.report-prose code {
+  color: #a5b4fc;
+  background: rgba(99, 102, 241, 0.1);
+  padding: 0.15em 0.4em;
+  border-radius: 0.25rem;
+  font-size: 0.9em;
+  border: 1px solid rgba(99, 102, 241, 0.2);
+}
+.report-prose a {
+  color: #818cf8;
+  text-decoration: none;
+}
+.report-prose a:hover {
+  text-decoration: underline;
+}
+.report-prose table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1em 0;
+}
+.report-prose th {
+  background: rgba(30, 41, 59, 0.8);
+  color: #e2e8f0;
+  font-weight: 600;
+  font-size: 0.875rem;
+  border: 1px solid rgba(71, 85, 105, 0.5);
+  padding: 0.5rem 1rem;
+  text-align: left;
+}
+.report-prose td {
+  color: #cbd5e1;
+  font-size: 0.875rem;
+  border: 1px solid rgba(71, 85, 105, 0.5);
+  padding: 0.5rem 1rem;
+}
+.report-prose hr {
+  border: none;
+  border-top: 1px solid rgba(71, 85, 105, 0.5);
+  margin: 2rem 0;
+}
