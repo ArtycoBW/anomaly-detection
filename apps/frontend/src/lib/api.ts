@@ -1,12 +1,3 @@
-import {
-  MOCK_HEATMAP,
-  MOCK_PROXIMITY,
-  MOCK_VENN,
-  MOCK_TIMELINE,
-  MOCK_ANOMALIES,
-  MOCK_REPORT_CONTENT,
-} from './mockData';
-
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 async function fetchApi<T>(path: string, options?: RequestInit): Promise<T> {
@@ -23,30 +14,6 @@ async function fetchApi<T>(path: string, options?: RequestInit): Promise<T> {
   return res.json();
 }
 
-/** Try API first, fallback to mock data */
-async function fetchWithFallback<T>(path: string, fallback: T): Promise<T> {
-  try {
-    const result = await fetchApi<T>(path);
-    // If the result looks empty (e.g. all-zero heatmap), use mock
-    if (isEmptyResult(result)) return fallback;
-    return result;
-  } catch {
-    return fallback;
-  }
-}
-
-function isEmptyResult(data: unknown): boolean {
-  if (!data) return true;
-  // Check heatmap with all-zero matrix
-  if (typeof data === 'object' && data !== null && 'matrix' in data) {
-    const d = data as { matrix?: number[][] };
-    if (d.matrix?.every((row) => row.every((v) => v === 0))) return true;
-  }
-  // Check empty array
-  if (Array.isArray(data) && data.length === 0) return true;
-  return false;
-}
-
 export const api = {
   regions: {
     getAll: () => fetchApi<any[]>('/regions'),
@@ -57,15 +24,17 @@ export const api = {
   },
   anomalies: {
     getAll: (year = 2023) =>
-      fetchWithFallback(`/anomalies?year=${year}`, MOCK_ANOMALIES),
+      fetchApi<any>(`/anomalies?year=${year}`),
     getHeatmap: (year = 2023) =>
-      fetchWithFallback(`/anomalies/heatmap?year=${year}`, MOCK_HEATMAP),
+      fetchApi<any>(`/anomalies/heatmap?year=${year}`),
     getVenn: (year = 2023) =>
-      fetchWithFallback(`/anomalies/venn?year=${year}`, MOCK_VENN),
+      fetchApi<any>(`/anomalies/venn?year=${year}`),
     getProximity: (year = 2023) =>
-      fetchWithFallback(`/anomalies/proximity?year=${year}`, MOCK_PROXIMITY),
+      fetchApi<any>(`/anomalies/proximity?year=${year}`),
     getTimeline: () =>
-      fetchWithFallback('/anomalies/timeline', MOCK_TIMELINE),
+      fetchApi<any>('/anomalies/timeline'),
+    getComparisonTable: (year = 2023) =>
+      fetchApi<any>(`/anomalies/comparison-table?year=${year}`),
   },
   ml: {
     run: (year = 2023) => fetchApi<any>(`/ml/run?year=${year}`, { method: 'POST' }),
@@ -75,7 +44,7 @@ export const api = {
     generate: (year = 2023) =>
       fetchApi<any>(`/report/generate?year=${year}`, { method: 'POST' }),
     getLatest: (year = 2023) =>
-      fetchWithFallback(`/report/latest?year=${year}`, { content: MOCK_REPORT_CONTENT }),
+      fetchApi<any>(`/report/latest?year=${year}`),
     streamUrl: (year = 2023) => `${API_BASE}/api/report/stream?year=${year}`,
   },
 };

@@ -142,6 +142,45 @@ export class AnomaliesService {
   }
 
   /**
+   * Сводная таблица: Регион | IF_score | D² | χ² p-value | Статус по каждому методу.
+   */
+  async getComparisonTable(year: number) {
+    const results = await this.prisma.anomalyResult.findMany({
+      where: { year },
+      include: { region: true },
+      orderBy: [{ regionId: 'asc' }, { method: 'asc' }],
+    });
+
+    const regionMap = new Map<string, any>();
+    for (const r of results) {
+      if (!regionMap.has(r.regionId)) {
+        regionMap.set(r.regionId, { regionId: r.regionId, name: r.region.name });
+      }
+      const entry = regionMap.get(r.regionId)!;
+      const zScoresJson = r.zScores as Record<string, number> | null;
+
+      if (r.method === 'zscore') {
+        entry.zscore_score = r.score;
+        entry.zscore_anomaly = r.isAnomaly;
+      } else if (r.method === 'isolation_forest') {
+        entry.if_score = r.score;
+        entry.if_anomaly = r.isAnomaly;
+      } else if (r.method === 'mahalanobis') {
+        entry.maha_score = r.score;
+        entry.maha_anomaly = r.isAnomaly;
+        entry.d_squared = zScoresJson?.d_squared ?? null;
+        entry.chi2_p_value = zScoresJson?.chi2_p_value ?? null;
+      } else if (r.method === 'ensemble') {
+        entry.ensemble_score = r.score;
+        entry.ensemble_anomaly = r.isAnomaly;
+        entry.stability_status = r.stabilityStatus;
+      }
+    }
+
+    return Array.from(regionMap.values());
+  }
+
+  /**
    * Временная шкала: ансамблевые оценки для всех регионов по годам (2022–2024).
    */
   async getTimeline() {

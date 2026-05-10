@@ -6,12 +6,13 @@ from services.data_loader import INDICATOR_COLUMNS
 
 
 def detect_isolation_forest(
-    df: pd.DataFrame, contamination: float = 0.25
+    df: pd.DataFrame, contamination: str | float = "auto"
 ) -> tuple[pd.DataFrame, IsolationForest, np.ndarray]:
     """
     Isolation Forest детекция аномалий.
     Возвращает результаты, обученную модель и скалированные данные
     (модель и данные нужны для SHAP).
+    contamination='auto' — порог определяется автоматически (как в оригинальной статье).
     """
     scaler = MinMaxScaler()
     X_scaled = scaler.fit_transform(df[INDICATOR_COLUMNS])

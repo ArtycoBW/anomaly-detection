@@ -26,6 +26,11 @@ export class AnomaliesController {
     return this.anomaliesService.getProximity(query.year);
   }
 
+  @Get('comparison-table')
+  getComparisonTable(@Query() query: RequiredYearQueryDto) {
+    return this.anomaliesService.getComparisonTable(query.year);
+  }
+
   @Get('timeline')
   getTimeline() {
     return this.anomaliesService.getTimeline();

@@ -61,12 +61,16 @@ async def run_pipeline(year: int = 2023):
             "stability_status": stability.get(region_id, "normal"),
         })
 
-        # Mahalanobis
+        # Mahalanobis (score = distance, z_scores хранит D² и χ² p-value)
         all_results.append({
             "region_id": region_id,
             "method": "mahalanobis",
             "score": m_results.loc[region_id, "score"],
             "is_anomaly": m_results.loc[region_id, "is_anomaly"],
+            "z_scores": {
+                "d_squared": round(float(m_results.loc[region_id, "d_squared"]), 4),
+                "chi2_p_value": round(float(m_results.loc[region_id, "chi2_p_value"]), 6),
+            },
             "stability_status": stability.get(region_id, "normal"),
         })
 
