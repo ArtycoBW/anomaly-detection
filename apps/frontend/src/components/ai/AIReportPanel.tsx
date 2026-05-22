@@ -123,6 +123,22 @@ ${html.match(/<style>[\s\S]*?<\/style>/)?.[0] || ''}
   downloadFile(wordHtml, `idata-report-${year}.doc`, 'application/msword;charset=utf-8');
 }
 
+function parseSseEvents(buffer: string) {
+  const events = buffer.split(/\r?\n\r?\n/);
+  const remainder = events.pop() ?? '';
+  const payloads = events
+    .map((event) =>
+      event
+        .split(/\r?\n/)
+        .filter((line) => line.startsWith('data:'))
+        .map((line) => line.slice(5).replace(/^ /, ''))
+        .join('\n'),
+    )
+    .filter((payload) => payload !== '[DONE]');
+
+  return { payloads, remainder };
+}
+
 export default function AIReportPanel({ year = 2023 }: AIReportPanelProps) {
   const [content, setContent] = useState<string>('');
   const [isStreaming, setIsStreaming] = useState(false);
@@ -166,10 +182,33 @@ export default function AIReportPanel({ year = 2023 }: AIReportPanelProps) {
       const reader = response.body?.getReader();
       if (!reader) throw new Error('Не удалось получить поток данных');
       const decoder = new TextDecoder();
+      let sseBuffer = '';
+
+      const appendChunk = (chunk: string) => {
+        if (chunk.includes('data:') || sseBuffer) {
+          sseBuffer += chunk;
+          const { payloads, remainder } = parseSseEvents(sseBuffer);
+          sseBuffer = remainder;
+          if (payloads.length) {
+            setContent((prev) => prev + payloads.join(''));
+          }
+          return;
+        }
+
+        setContent((prev) => prev + chunk);
+      };
+
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
-        setContent((prev) => prev + decoder.decode(value));
+        appendChunk(decoder.decode(value, { stream: true }));
+      }
+
+      const tail = decoder.decode();
+      if (tail) appendChunk(tail);
+      if (sseBuffer.trim()) {
+        const { payloads } = parseSseEvents(`${sseBuffer}\n\n`);
+        if (payloads.length) setContent((prev) => prev + payloads.join(''));
       }
     } catch (err: unknown) {
       if (err instanceof Error && err.name !== 'AbortError') {

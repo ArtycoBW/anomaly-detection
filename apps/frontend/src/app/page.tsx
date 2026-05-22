@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import dynamic from 'next/dynamic';
 import { useYear } from '@/context/YearContext';
 import { useAnomalies } from '@/hooks/useAnomalies';
 import { useRegions } from '@/hooks/useRegions';
@@ -10,6 +11,17 @@ import { CardSkeleton, TableSkeleton } from '@/components/ui/Skeleton';
 import { getAnomalyColor } from '@/lib/utils';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+
+const RussiaGlobe3D = dynamic(() => import('@/components/charts/RussiaGlobe3D'), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-130 rounded-2xl border border-cyan-500/10 bg-void flex items-center justify-center">
+      <span className="text-[10px] font-mono text-cyan-500/40 uppercase tracking-[0.2em] animate-pulse">
+        загрузка 3D карты...
+      </span>
+    </div>
+  ),
+});
 
 function AnimatedCounter({ value, suffix = '' }: { value: number; suffix?: string }) {
   const [display, setDisplay] = useState(0);
@@ -162,6 +174,26 @@ export default function HomePage() {
           />
         </div>
       )}
+
+      {/* 3D Map */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.4 }}
+      >
+        <RussiaGlobe3D
+          regions={regionsList.length > 0 ? regionsList.map((r: any) => ({
+            id: r.region_id,
+            name: r.name,
+            isAnomaly: r.methods?.ensemble?.is_anomaly ?? false,
+            score: r.methods?.ensemble?.score ?? 0,
+            stability: r.methods?.ensemble?.stability_status ?? 'normal',
+          })) : undefined}
+          onRegionClick={(id) => {
+            window.location.href = `/regions/${id}`;
+          }}
+        />
+      </motion.div>
 
       {/* Table */}
       {isLoading ? (

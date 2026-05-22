@@ -35,6 +35,8 @@ export const api = {
       fetchApi<any>('/anomalies/timeline'),
     getComparisonTable: (year = 2023) =>
       fetchApi<any>(`/anomalies/comparison-table?year=${year}`),
+    getIndicatorTable: (year = 2023) =>
+      fetchApi<any>(`/anomalies/indicator-table?year=${year}`),
   },
   ml: {
     run: (year = 2023) => fetchApi<any>(`/ml/run?year=${year}`, { method: 'POST' }),

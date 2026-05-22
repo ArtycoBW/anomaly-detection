@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { useYear } from '@/context/YearContext';
 import { cn } from '@/lib/utils';
 
-const YEARS = [2022, 2023, 2024] as const;
+const YEARS = [2020, 2021, 2022, 2023, 2024] as const;
 
 interface NavItem {
   label: string;
@@ -71,6 +71,15 @@ function ReportIcon() {
   );
 }
 
+function LandingIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M2 10L10 3L18 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M4 9V17H8V13H12V17H16V9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 function MenuIcon() {
   return (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -93,6 +102,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Сравнение методов', href: '/analysis/comparison', icon: <ComparisonIcon /> },
   { label: 'Динамика', href: '/analysis/timeline', icon: <TimelineIcon /> },
   { label: 'AI Отчёт', href: '/report', icon: <ReportIcon /> },
+  { label: 'Лендинг', href: '/landing', icon: <LandingIcon /> },
 ];
 
 export function Sidebar() {

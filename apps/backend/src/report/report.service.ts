@@ -26,15 +26,16 @@ export class ReportService {
     try {
       this.logger.log(`Генерация отчёта за ${year} год`);
       const { data } = await firstValueFrom(
-        this.http.post('/report', { year }),
+        this.http.post('/report', null, { params: { year } }),
       );
 
       // Сохраняем отчёт в БД
-      if (data?.content) {
+      const content = data?.content ?? data?.report;
+      if (content) {
         await this.prisma.report.upsert({
           where: { year },
-          create: { year, content: data.content },
-          update: { content: data.content },
+          create: { year, content },
+          update: { content },
         });
       }
 
@@ -88,7 +89,13 @@ export class ReportService {
           let buffer = '';
 
           stream.on('data', (chunk: Buffer) => {
-            buffer += chunk.toString();
+            const text = chunk.toString();
+            if (!text.includes('data:')) {
+              subscriber.next({ data: text });
+              return;
+            }
+
+            buffer += text;
             const lines = buffer.split('\n');
             // Последний элемент может быть незавершённой строкой
             buffer = lines.pop() ?? '';

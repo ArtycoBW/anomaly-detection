@@ -16,7 +16,7 @@ export class MlService {
     try {
       this.logger.log(`Запуск ML-пайплайна для года ${year}`);
       const { data } = await firstValueFrom(
-        this.http.post('/run', { year }),
+        this.http.post('/run', null, { params: { year } }),
       );
       return data;
     } catch (error) {

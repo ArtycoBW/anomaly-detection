@@ -22,13 +22,14 @@ const INDICATOR_LABELS: Record<string, string> = {
   rd_spending_pct_gdp: 'Расходы на НИОКР (% ВРП)',
   unemployment_rate: 'Безработица',
   poverty_rate: 'Уровень бедности',
-  higher_education_share: 'Доля высш. образования',
+  higher_education_share: 'Студенты вузов / 10 тыс.',
   migration_growth: 'Миграционный прирост',
   emissions_per_gdp: 'Выбросы на ед. ВРП',
   roads_per_area: 'Плотность дорог',
 };
 
 type MethodName = 'zscore' | 'isolation_forest' | 'mahalanobis';
+const Z_SCORE_ANOMALY_THRESHOLD = 2.5;
 
 @Injectable()
 export class AnomaliesService {
@@ -108,13 +109,23 @@ export class AnomaliesService {
    * Матрица евклидовых расстояний между регионами в пространстве z-score.
    */
   async getProximity(year: number) {
-    const results = await this.prisma.anomalyResult.findMany({
-      where: { year, method: 'zscore' },
-      include: { region: true },
-      orderBy: { regionId: 'asc' },
-    });
+    const [results, ensembleResults] = await Promise.all([
+      this.prisma.anomalyResult.findMany({
+        where: { year, method: 'zscore' },
+        include: { region: true },
+        orderBy: { regionId: 'asc' },
+      }),
+      this.prisma.anomalyResult.findMany({
+        where: { year, method: 'ensemble' },
+        select: { regionId: true, score: true },
+      }),
+    ]);
+    const ensembleScoreByRegion = new Map(
+      ensembleResults.map((r) => [r.regionId, r.score]),
+    );
 
     const regions = results.map((r) => r.region.name);
+    const anomalyScores = results.map((r) => ensembleScoreByRegion.get(r.regionId) ?? 0);
     const vectors = results.map((r) => {
       const zScores = (r.zScores as Record<string, number>) ?? {};
       return INDICATOR_KEYS.map((key) => zScores[key] ?? 0);
@@ -138,7 +149,7 @@ export class AnomaliesService {
       }
     }
 
-    return { regions, matrix: distanceMatrix };
+    return { regions, matrix: distanceMatrix, anomalyScores };
   }
 
   /**
@@ -178,6 +189,47 @@ export class AnomaliesService {
     }
 
     return Array.from(regionMap.values());
+  }
+
+  /**
+   * Таблица аномалий по показателям (Базовый уровень ТЗ):
+   * Регион | Показатель | z-score | Тип (лидер/отстающий)
+   * Только записи с |z| > 2.5.
+   */
+  async getIndicatorTable(year: number) {
+    const results = await this.prisma.anomalyResult.findMany({
+      where: { year, method: 'zscore' },
+      include: { region: true },
+      orderBy: { regionId: 'asc' },
+    });
+
+    const rows: {
+      regionId: string;
+      regionName: string;
+      indicator: string;
+      indicatorRu: string;
+      zScore: number;
+      type: 'лидер' | 'отстающий';
+    }[] = [];
+
+    for (const result of results) {
+      const zScores = (result.zScores as Record<string, number>) ?? {};
+      for (const key of INDICATOR_KEYS) {
+        const z = zScores[key] ?? 0;
+        if (Math.abs(z) > Z_SCORE_ANOMALY_THRESHOLD) {
+          rows.push({
+            regionId: result.regionId,
+            regionName: result.region.name,
+            indicator: key,
+            indicatorRu: INDICATOR_LABELS[key] ?? key,
+            zScore: Math.round(z * 1000) / 1000,
+            type: z > 0 ? 'лидер' : 'отстающий',
+          });
+        }
+      }
+    }
+
+    return rows.sort((a, b) => Math.abs(b.zScore) - Math.abs(a.zScore));
   }
 
   /**

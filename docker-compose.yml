@@ -48,7 +48,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    command: sh -c "npx prisma migrate deploy && node dist/main.js"
+    command: sh -c "npx prisma migrate deploy && node prisma-dist/seed.js && node dist/main.js"
 
   ml:
     build:
@@ -76,7 +76,7 @@ services:
     environment:
       NEXT_PUBLIC_API_URL: http://localhost:3001
     ports:
-      - "3000:3000"
+      - "${FRONTEND_PORT:-3002}:3000"
     depends_on:
       - backend
 

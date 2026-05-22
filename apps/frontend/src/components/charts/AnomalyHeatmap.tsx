@@ -12,6 +12,9 @@ interface AnomalyHeatmapProps {
   };
 }
 
+const Z_SCORE_ANOMALY_THRESHOLD = 2.5;
+const Z_SCORE_MODERATE_THRESHOLD = 1.5;
+
 export default function AnomalyHeatmap({ data }: AnomalyHeatmapProps) {
   const [hoveredCell, setHoveredCell] = useState<{
     rowIdx: number;
@@ -108,7 +111,7 @@ export default function AnomalyHeatmap({ data }: AnomalyHeatmapProps) {
                     hoveredCell?.rowIdx === rowIdx &&
                     hoveredCell?.colIdx === colIdx;
                   const absVal = Math.abs(value);
-                  const isAnomaly = absVal > 1.5;
+                  const isAnomaly = absVal > Z_SCORE_ANOMALY_THRESHOLD;
 
                   return (
                     <td key={`${region}-${ind}`} className="p-0">
@@ -143,7 +146,7 @@ export default function AnomalyHeatmap({ data }: AnomalyHeatmapProps) {
                         <span
                           className={cn(
                             'text-[11px] font-mono font-semibold transition-opacity',
-                            absVal > 2
+                            absVal > Z_SCORE_ANOMALY_THRESHOLD
                               ? 'text-white/90'
                               : absVal > 1
                                 ? 'text-slate-900/70'
@@ -211,9 +214,14 @@ export default function AnomalyHeatmap({ data }: AnomalyHeatmapProps) {
                   {hoveredCell.value.toFixed(3)}
                 </span>
               </div>
-              {Math.abs(hoveredCell.value) > 1.5 && (
+              {Math.abs(hoveredCell.value) > Z_SCORE_ANOMALY_THRESHOLD && (
+                <div className={`mt-1.5 text-[10px] font-medium ${hoveredCell.value > 0 ? 'text-red-400/90' : 'text-blue-400/90'}`}>
+                  {hoveredCell.value > 0 ? 'Регион-лидер (аномально высокий)' : 'Регион-отстающий (аномально низкий)'}
+                </div>
+              )}
+              {Math.abs(hoveredCell.value) > Z_SCORE_MODERATE_THRESHOLD && Math.abs(hoveredCell.value) <= Z_SCORE_ANOMALY_THRESHOLD && (
                 <div className="mt-1.5 text-[10px] text-amber-400/80 font-medium">
-                  Аномальное отклонение
+                  Умеренное отклонение
                 </div>
               )}
             </div>

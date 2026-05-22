@@ -31,6 +31,11 @@ export class AnomaliesController {
     return this.anomaliesService.getComparisonTable(query.year);
   }
 
+  @Get('indicator-table')
+  getIndicatorTable(@Query() query: RequiredYearQueryDto) {
+    return this.anomaliesService.getIndicatorTable(query.year);
+  }
+
   @Get('timeline')
   getTimeline() {
     return this.anomaliesService.getTimeline();

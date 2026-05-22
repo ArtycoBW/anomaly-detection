@@ -12,7 +12,7 @@ export const INDICATOR_LABELS: Record<string, string> = {
   rd_spending_pct_gdp: 'НИОКР (% ВРП)',
   unemployment_rate: 'Безработица',
   poverty_rate: 'Бедность',
-  higher_education_share: 'Высшее образование',
+  higher_education_share: 'Студенты вузов / 10 тыс.',
   migration_growth: 'Миграция',
   emissions_per_gdp: 'Выбросы на ВРП',
   roads_per_area: 'Плотность дорог',

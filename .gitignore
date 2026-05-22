@@ -19,6 +19,7 @@ dist/
 # IDE
 .idea/
 .vscode/
+.agents/
 *.swp
 *.swo
 .claude
@@ -40,6 +41,13 @@ apps/backend/prisma/migrations/**/migration_lock.toml
 .pytest_cache/
 htmlcov/
 .coverage
+
+# Test artifacts
+test-results/
+playwright-report/
+
+# Local data exploration dumps
+/data/tochno_structure.txt
 
 # Logs
 *.log

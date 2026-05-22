@@ -101,8 +101,12 @@ function seededRandom(seed: number) {
 
 function Scene({ data }: ProximityGraph3DProps) {
   const { regions, anomalyScores } = data;
-  const distances = data.matrix || data.distances || [];
   const [hovered, setHovered] = useState<number | null>(null);
+
+  const distances = useMemo(
+    () => data.matrix || data.distances || [],
+    [data.matrix, data.distances],
+  );
 
   const handleHover = useCallback((i: number) => setHovered(i), []);
   const handleUnhover = useCallback(() => setHovered(null), []);

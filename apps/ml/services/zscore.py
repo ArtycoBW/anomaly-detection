@@ -4,11 +4,12 @@ from sklearn.preprocessing import StandardScaler
 from services.data_loader import INDICATOR_COLUMNS
 
 
-def detect_zscore(df: pd.DataFrame, threshold: float = 1.5) -> pd.DataFrame:
+def detect_zscore(df: pd.DataFrame, threshold: float = 2.5) -> pd.DataFrame:
     """
     Z-score детекция аномалий.
     Для каждого показателя вычисляет z-score.
     Регион считается аномальным, если хотя бы один |z| > threshold.
+    Порог 2.5 соответствует ТЗ.
     """
     scaler = StandardScaler()
     z_scores = pd.DataFrame(
