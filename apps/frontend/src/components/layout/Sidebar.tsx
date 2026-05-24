@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useYear } from '@/context/YearContext';
 import { cn } from '@/lib/utils';
 
@@ -109,6 +109,11 @@ export function Sidebar() {
   const pathname = usePathname();
   const { year, setYear } = useYear();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    setHydrated(true);
+  }, []);
 
   function isActive(href: string): boolean {
     if (href === '/') return pathname === '/';
@@ -179,8 +184,11 @@ export function Sidebar() {
             <button
               key={y}
               onClick={() => setYear(y)}
+              disabled={!hydrated}
+              aria-disabled={!hydrated}
               className={cn(
                 'flex-1 py-2 rounded-lg text-sm font-medium transition-all duration-200',
+                !hydrated && 'cursor-wait opacity-70',
                 year === y
                   ? 'bg-indigo-500/20 text-indigo-300 shadow-sm shadow-indigo-500/10 border border-indigo-500/20'
                   : 'text-slate-500 hover:text-slate-300 border border-transparent',

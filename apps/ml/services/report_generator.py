@@ -9,6 +9,16 @@ OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")
 MODEL_NAME = os.getenv("OLLAMA_MODEL", "gemma3:4b")
 
 
+def _format_ollama_error(status_code: int | None, text: str) -> str:
+    try:
+        detail = json.loads(text).get("error", text)
+    except json.JSONDecodeError:
+        detail = text
+
+    prefix = f"Ollama вернул ошибку: {status_code}" if status_code else "Ollama вернул ошибку"
+    return f"{prefix} — {detail}"
+
+
 def _load_anomaly_data(year: int) -> list[dict]:
     """Загружает результаты ensemble-анализа за указанный год."""
     query = text("""
@@ -122,13 +132,14 @@ async def generate_report(year: int) -> dict:
         )
 
     if response.status_code != 200:
-        return {"error": f"Ollama вернул ошибку: {response.status_code} — {response.text}"}
+        return {"error": _format_ollama_error(response.status_code, response.text)}
 
     result = response.json()
     report_text = result.get("response", "")
 
     # Сохраняем отчёт в БД
-    _save_report(year, report_text)
+    if report_text.strip():
+        _save_report(year, report_text)
 
     return {
         "year": year,
@@ -162,9 +173,25 @@ async def generate_report_stream(year: int):
                 },
             },
         ) as response:
+            if response.status_code != 200:
+                text = await response.aread()
+                yield json.dumps(
+                    {
+                        "error": _format_ollama_error(
+                            response.status_code,
+                            text.decode("utf-8", errors="replace"),
+                        )
+                    }
+                )
+                return
+
             async for line in response.aiter_lines():
                 if line:
                     chunk = json.loads(line)
+                    if "error" in chunk:
+                        yield json.dumps({"error": _format_ollama_error(None, json.dumps(chunk))})
+                        return
+
                     token = chunk.get("response", "")
                     full_text.append(token)
                     yield token
@@ -174,11 +201,15 @@ async def generate_report_stream(year: int):
 
     # Сохраняем полный отчёт
     report_text = "".join(full_text)
-    _save_report(year, report_text)
+    if report_text.strip():
+        _save_report(year, report_text)
 
 
 def _save_report(year: int, content: str):
     """Сохраняет отчёт в таблицу reports (upsert по year)."""
+    if not content.strip():
+        return
+
     upsert_sql = text("""
         INSERT INTO reports (year, content) VALUES (:year, :content)
         ON CONFLICT (year) DO UPDATE SET content = EXCLUDED.content, created_at = NOW()

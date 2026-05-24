@@ -2,7 +2,7 @@
 
 import { useRef, useState, useMemo } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls, Text, Line } from '@react-three/drei';
+import { OrbitControls, Html, Line } from '@react-three/drei';
 import * as THREE from 'three';
 
 // Geographic coords of 8 regions (lon, lat)
@@ -137,18 +137,22 @@ function RegionPillar({
       )}
 
       {/* Label */}
-      <Text
+      <Html
         position={[0, height + 0.35, 0]}
-        fontSize={0.22}
-        color={hovered || isSelected ? '#fff' : color}
-        anchorX="center"
-        anchorY="bottom"
-        font="https://fonts.gstatic.com/s/jetbrainsmono/v18/tDbY2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yK4.woff2"
-        maxWidth={2}
-        textAlign="center"
+        center
+        distanceFactor={8}
+        style={{ pointerEvents: 'none' }}
       >
-        {region.name.split(' ').slice(-1)[0]}
-      </Text>
+        <div
+          className="max-w-[76px] text-center text-[10px] font-mono leading-tight"
+          style={{
+            color: hovered || isSelected ? '#fff' : color,
+            textShadow: `0 0 8px ${color}`,
+          }}
+        >
+          {region.name.split(' ').slice(-1)[0]}
+        </div>
+      </Html>
     </group>
   );
 }
@@ -176,7 +180,7 @@ function ConnectionLines({ regions }: { regions: RegionData[] }) {
               new THREE.Vector3(ca[0], 0.05, ca[1]),
               new THREE.Vector3(cb[0], 0.05, cb[1]),
             ]}
-            color={bothAnomaly ? '#FF7B00' : 'rgba(0,255,209,0.3)'}
+            color={bothAnomaly ? '#FF7B00' : '#00FFD1'}
             lineWidth={bothAnomaly ? 0.8 : 0.4}
             transparent
             opacity={bothAnomaly ? 0.5 : 0.2}

@@ -164,14 +164,17 @@ export default function AnomalyTimeline({ data }: AnomalyTimelineProps) {
                 dataKey={region.regionId}
                 stroke={COLORS[i % COLORS.length]}
                 strokeWidth={2}
-                dot={(props: CustomDotProps) => (
+                dot={(props: CustomDotProps & { key?: React.Key }) => {
+                  const { key: _key, ...dotProps } = props;
+                  return (
                   <AnomalyDot
                     key={`${props.cx}-${props.cy}`}
-                    {...props}
+                    {...dotProps}
                     regionData={region}
                     stroke={COLORS[i % COLORS.length]}
                   />
-                )}
+                  );
+                }}
                 activeDot={{ r: 7, stroke: '#fff', strokeWidth: 2 }}
                 connectNulls
               />

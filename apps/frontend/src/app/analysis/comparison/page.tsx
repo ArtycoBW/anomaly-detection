@@ -16,7 +16,7 @@ import { motion } from 'framer-motion';
 
 const ProximityGraph3D = dynamic(
   () => import('@/components/charts/ProximityGraph3D'),
-  { ssr: false, loading: () => <div className="h-125 skeleton rounded-xl" /> }
+  { ssr: false, loading: () => <div className="h-[500px] skeleton rounded-xl" /> }
 );
 
 function MethodBadge({ isAnomaly }: { isAnomaly: boolean }) {

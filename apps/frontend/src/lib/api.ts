@@ -11,7 +11,9 @@ async function fetchApi<T>(path: string, options?: RequestInit): Promise<T> {
   if (!res.ok) {
     throw new Error(`API Error: ${res.status} ${res.statusText}`);
   }
-  return res.json();
+  const text = await res.text();
+  if (!text) return null as T;
+  return JSON.parse(text) as T;
 }
 
 export const api = {

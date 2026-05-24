@@ -184,18 +184,34 @@ export default function AIReportPanel({ year = 2023 }: AIReportPanelProps) {
       const decoder = new TextDecoder();
       let sseBuffer = '';
 
+      const appendPayload = (payload: string) => {
+        const trimmed = payload.trim();
+        if (trimmed.startsWith('{')) {
+          try {
+            const parsed = JSON.parse(trimmed);
+            if (parsed?.error) {
+              setError(String(parsed.error));
+              return;
+            }
+          } catch {
+            // Not a JSON control payload; append as report text.
+          }
+        }
+        setContent((prev) => prev + payload);
+      };
+
       const appendChunk = (chunk: string) => {
         if (chunk.includes('data:') || sseBuffer) {
           sseBuffer += chunk;
           const { payloads, remainder } = parseSseEvents(sseBuffer);
           sseBuffer = remainder;
           if (payloads.length) {
-            setContent((prev) => prev + payloads.join(''));
+            payloads.forEach(appendPayload);
           }
           return;
         }
 
-        setContent((prev) => prev + chunk);
+        appendPayload(chunk);
       };
 
       while (true) {
@@ -247,7 +263,7 @@ export default function AIReportPanel({ year = 2023 }: AIReportPanelProps) {
       <div className="flex items-center justify-between px-6 py-4 border-b border-slate-700/40 bg-slate-900/40 shrink-0">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500/20 to-violet-500/20 flex items-center justify-center border border-indigo-500/20">
-            <svg className="w-4.5 h-4.5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <svg className="w-[18px] h-[18px] text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
             </svg>
           </div>

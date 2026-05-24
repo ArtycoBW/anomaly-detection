@@ -1,4 +1,4 @@
-import { Injectable, Logger, HttpException, HttpStatus, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, HttpException, HttpStatus } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { PrismaService } from '../prisma/prisma.service';
 import { firstValueFrom, Observable } from 'rxjs';
@@ -62,10 +62,7 @@ export class ReportService {
    */
   async getLatest(year: number) {
     const report = await this.prisma.report.findUnique({ where: { year } });
-    if (!report) {
-      throw new NotFoundException(`Отчёт за ${year} год не найден`);
-    }
-    return report;
+    return report ?? null;
   }
 
   /**

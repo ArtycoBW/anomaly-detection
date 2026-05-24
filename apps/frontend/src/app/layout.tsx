@@ -25,6 +25,10 @@ const jetBrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: 'iData — Детекция аномалий',
   description: 'Платформа обнаружения аномалий в социально-экономических показателях регионов',
+  icons: {
+    icon: [{ url: '/favicon.svg', type: 'image/svg+xml' }],
+    shortcut: '/favicon.svg',
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
